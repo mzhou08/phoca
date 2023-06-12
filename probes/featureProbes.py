@@ -55,7 +55,7 @@ class TLSVersions(FeatureProbe):
         context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS)
         context.verify_mode = ssl.CERT_NONE # disable cert. validation
         context.check_hostname = False  # disable host name checking
-        context.options &= ~ssl.OP_NO_SSLv3
+        context.options &= ~ssl.OP_NO_SSLv3     # Why do we initially disallow everything but SSLv3?
 
         # Disable all TLS versions and reenable the one that we do want
         blackListVersions = ssl.OP_NO_TLSv1_3 | ssl.OP_NO_TLSv1_2 | ssl.OP_NO_TLSv1_1 | ssl.OP_NO_TLSv1 | ssl.OP_NO_SSLv3 | ssl.OP_NO_SSLv2

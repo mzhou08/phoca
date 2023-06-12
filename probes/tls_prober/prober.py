@@ -320,6 +320,7 @@ probes = [
 
 results = {}
 def do_probe(args):
+    # probe inherits from the Probe() class defined in probes.py
     probe, ipaddress, port, starttls = args
     # logging.info('Probing... %s', type(probe).__name__)
     # print(type(probe).__name__)

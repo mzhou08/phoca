@@ -5,13 +5,16 @@ from sklearn.ensemble import RandomForestClassifier
 from tqdm import tqdm
 from pandas import DataFrame, read_csv, concat
 
+# "cd" into the probes folder? For these next couple imports to work
 sys.path.insert(1, os.path.join(os.path.dirname(__file__), 'probes'))
 
 from timingProbes import *
 from featureProbes import *
 
 class Detector:
-
+    # classes defined in probes/
+    
+    # probes to track network timings
     timingProbes = [
         tcpSYNTiming,
         tlsClientHelloTiming,
@@ -25,9 +28,10 @@ class Detector:
         httpsGetRequestNoHostHeaderTiming
     ]
 
+    # probes to extract certain features of the server
     featureProbes = [
-        TLSLibrary,
-        TLSVersions,
+        TLSLibrary,     # which TLS implementation is used
+        TLSVersions,    # which TLS versions are supported
     ]
 
     def __init__(self, http_port=80, https_port=443, numIterations=10, 
@@ -47,6 +51,7 @@ class Detector:
         crawlResults = {}
 
         with concurrent.futures.ThreadPoolExecutor(10) as executor:
+            # create promises for execution
             for result in self.tqdm_parallel_map(executor, self.testSite, domains):
                 crawlResults[result['site']] = {'classification' : result['classification'], 
                                                 'data' : result['data']}
@@ -62,7 +67,9 @@ class Detector:
 
     def testSite(self, site):
         result = {'site' : site}
+        # probe site to extract features
         result['data'] = self.probeSite(site)
+        # feed features into classification model
         result['classification'] = self.classifySite(result['data'])
 
         return result
@@ -71,8 +78,11 @@ class Detector:
         classification = None
 
         recordingsDataFrame = DataFrame([recordings])
+        # drop all columns that are not supported features
         columnsToDrop = [column for column in recordingsDataFrame if column not in self.model.feature_names]
         recordingsDataFrame = recordingsDataFrame.drop(columnsToDrop, axis=1)
+
+        # if there are any undefined fields
         if(recordingsDataFrame.isna().sum().sum() > 0):
             return classification
 
